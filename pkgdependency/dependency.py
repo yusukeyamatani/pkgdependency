@@ -10,8 +10,10 @@ from termcolor import colored
 
 COLOR_WARNING = 'red'
 COLOR_INFO = 'cyan'
+COLOR_SUCCESS = 'green'
 WARNING_NOT_FOUND = colored('NOT FOUND', COLOR_WARNING)
-UPDATE_REQUIRED_VERSION = colored('VERSION CONFLICT', COLOR_WARNING)
+WARNING_VERSION_CONFLICT = colored('VERSION CONFLICT', COLOR_WARNING)
+VERIFY_SUCCESS = colored('PKG VERIFY SUCCESS', COLOR_SUCCESS)
 VERSION_MATCH_PATTERN = r"\s*(<=?|>=?|===?|!=|~=)"
 REQUIREMENT_IMPORT_PATTERN = r"(?=.*-r)(?=.*txt)"
 EGG_MATCH_PATTERN = r"#egg="
@@ -19,9 +21,10 @@ EGG_MATCH_PATTERN = r"#egg="
 
 class PackageDependency(object):
 
-    def __init__(self):
+    def __init__(self, disapprove_exit=False):
         self.import_requirements = []
         self.terminate = False
+        self.disapprove_exit = disapprove_exit
 
     @staticmethod
     def requirements_exist(requirements_path=None):
@@ -86,6 +89,13 @@ class PackageDependency(object):
                 return True
         return False
 
+    def result(self):
+        if not self.terminate:
+            print("{comment}".format(comment=VERIFY_SUCCESS))
+
+        if self.terminate and self.disapprove_exit:
+            exit(1)
+
     def verify(self, requirements_path=None):
         """
         requirements.txtの内容と差異が無いか確認する.
@@ -107,7 +117,7 @@ class PackageDependency(object):
                     self.terminate = True
                     current_package = get_distribution(package_data['name'])
                     print("{comment}: {name}({before_ver}) => ({after_ver})".format(
-                                                            comment=UPDATE_REQUIRED_VERSION,
+                                                            comment=WARNING_VERSION_CONFLICT,
                                                             name=colored(package_data['name'], COLOR_INFO),
                                                             before_ver=colored(current_package.version, COLOR_INFO),
                                                             after_ver=colored(package_data['version'], COLOR_INFO)))

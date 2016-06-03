@@ -14,10 +14,9 @@ def verify_dependency(requirements_path, disapprove_exit=False):
     :param disapprove_exit: 問題時にexitするかどうかのフラグ
     :type disapprove_exit: bool
     """
-    package_dependency = PackageDependency()
+    package_dependency = PackageDependency(disapprove_exit)
     package_dependency.verify(requirements_path)
     if package_dependency.import_requirements:
         for import_requirements_path in package_dependency.import_requirements:
             package_dependency.verify(import_requirements_path)
-    if package_dependency.terminate and disapprove_exit:
-        exit(1)
+    package_dependency.result()
